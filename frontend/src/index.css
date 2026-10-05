@@ -1,0 +1,29 @@
+:root {
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  color: #17221c;
+  background: #f1f5ef;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #17221c;
+  --muted: #68746d;
+  --paper: #fbfcf8;
+  --line: #dce4dc;
+  --green: #276a4b;
+  --green-dark: #1b5139;
+  --green-soft: #e3efe7;
+  --red: #b54d45;
+  --shadow: 0 24px 70px rgba(42, 61, 49, 0.11);
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; min-height: 100%; background: #f1f5ef; }
+body { min-width: 320px; min-height: 100vh; margin: 0; }
+button, input { font: inherit; }
+button { color: inherit; }
+button, label[for] { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid rgba(39, 106, 75, 0.28);
+  outline-offset: 2px;
+}
+#root { min-height: 100vh; }
