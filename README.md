@@ -178,6 +178,28 @@ environment variables:
 | `FACE_RECOGNITION_TOLERANCE` | `0.55` | Maximum distance accepted as a match |
 | `FACE_RECOGNITION_FRAME_SCALE` | `0.5` | Scale applied before live recognition |
 | `FACE_DETECTION_MODEL` | `hog` | Face detector: `hog` or `cnn` |
+
+## Deploying the backend to Render
+
+Set the Render service's root directory to `backend`. Use this build command so
+Render installs the prebuilt `dlib-bin` wheel and skips compiling the `dlib`
+source distribution (the two distributions provide the same `dlib` Python
+module):
+
+```bash
+uv lock && uv sync --frozen --no-dev --no-install-package dlib
+```
+
+Use this start command:
+
+```bash
+uv run --no-sync uvicorn --app-dir src backend.main:app --host 0.0.0.0 --port $PORT
+```
+
+Keep `dlib-bin` in `backend/pyproject.toml`; the lock command updates
+`backend/uv.lock` during the Render build. Do not remove
+`--no-install-package dlib` from the sync command, or Render will try to
+compile `dlib` from source again.
 | `FACE_ENCODING_MODEL` | `small` | Face landmarks model: `small` or `large` |
 | `FACE_DETECTION_UPSAMPLE` | `1` | Detection upsample count |
 | `FACE_ENCODING_JITTERS` | `1` | Face encoding sample count |
