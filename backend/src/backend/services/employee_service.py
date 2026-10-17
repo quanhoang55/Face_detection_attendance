@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime
-from threading import Lock
 from typing import Callable
 
 from backend.models.domain import Employee
 from backend.models.schemas import EmployeeAttendance, EmployeeCreated
-from backend.repositories.employee_csv import EmployeeCsvRepository
+from backend.repositories.interfaces import EmployeeRepository
 from backend.services.attendance_service import AttendanceService
 from backend.services.face_encoder import FaceEncoder
 
@@ -24,7 +23,7 @@ class InvalidEmployeeNameError(ValueError):
 class EmployeeService:
     def __init__(
         self,
-        employee_repository: EmployeeCsvRepository,
+        employee_repository: EmployeeRepository,
         attendance_service: AttendanceService,
         face_encoder: FaceEncoder,
         clock: Clock,
@@ -33,7 +32,6 @@ class EmployeeService:
         self._attendance = attendance_service
         self._face_encoder = face_encoder
         self._clock = clock
-        self._enrollment_lock = Lock()
 
     def enroll(self, name: str, image_filename: str, image: bytes) -> EmployeeCreated:
         normalized_name = " ".join(name.split())
@@ -54,15 +52,14 @@ class EmployeeService:
             normalized_name,
             encoded_face.location,
         )
-        with self._enrollment_lock:
-            employee = Employee(
-                employee_id=self._employees.next_id(),
-                name=normalized_name,
-                image_filename=image_filename,
-                face_encoding=encoded_face.encoding,
-                created_at=self._clock(),
-            )
-            self._employees.create(employee)
+        employee = Employee(
+            employee_id="",
+            name=normalized_name,
+            image_filename=image_filename,
+            face_encoding=encoded_face.encoding,
+            created_at=self._clock(),
+        )
+        employee = self._employees.create(employee)
         logger.info(
             "Employee persisted | employee_id=%s | name=%r",
             employee.employee_id,

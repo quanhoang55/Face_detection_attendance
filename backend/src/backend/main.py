@@ -13,8 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import Settings
 from backend.logging_config import configure_logging
+from backend.repositories.attendance_supabase import AttendanceSupabaseRepository
 from backend.repositories.attendance_csv import AttendanceCsvRepository
+from backend.repositories.employee_supabase import EmployeeSupabaseRepository
 from backend.repositories.employee_csv import EmployeeCsvRepository
+from backend.repositories.interfaces import AttendanceRepository, EmployeeRepository
+from backend.repositories.supabase_rest import SupabaseRestClient
 from backend.services.attendance_service import AttendanceService
 from backend.services.employee_service import EmployeeService
 from backend.services.face_encoder import FaceEncoder
@@ -30,8 +34,8 @@ class CoreServices:
     settings: Settings
     face_encoder: FaceEncoder
     face_recognizer: FaceRecognizer
-    employee_repository: EmployeeCsvRepository
-    attendance_repository: AttendanceCsvRepository
+    employee_repository: EmployeeRepository
+    attendance_repository: AttendanceRepository
     upload_service: UploadService
     attendance_service: AttendanceService
     employee_service: EmployeeService
@@ -49,12 +53,20 @@ def create_core(settings: Settings | None = None) -> CoreServices:
 
     face_encoder = FaceEncoder(resolved_settings)
     face_recognizer = FaceRecognizer(resolved_settings)
-    employee_repository = EmployeeCsvRepository(
-        resolved_settings.data_dir / "employees.csv"
-    )
-    attendance_repository = AttendanceCsvRepository(
-        resolved_settings.data_dir / "attendance.csv"
-    )
+    if resolved_settings.storage_backend == "supabase":
+        client = SupabaseRestClient(
+            resolved_settings.supabase_url or "",
+            resolved_settings.supabase_secret_key or "",
+        )
+        employee_repository = EmployeeSupabaseRepository(client)
+        attendance_repository = AttendanceSupabaseRepository(client)
+    else:
+        employee_repository = EmployeeCsvRepository(
+            resolved_settings.data_dir / "employees.csv"
+        )
+        attendance_repository = AttendanceCsvRepository(
+            resolved_settings.data_dir / "attendance.csv"
+        )
     attendance_service = AttendanceService(attendance_repository, clock)
     return CoreServices(
         settings=resolved_settings,
@@ -90,18 +102,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(title="Face Recognition Attendance API", version="0.1.0")
     application.state.core = core
 
-    data_dir = core.settings.data_dir.resolve()
     employee_count = len(core.employee_repository.list_all())
-    logger.info(
-        "Backend started | data_dir=%s | employees_csv=%s | attendance_csv=%s | "
-        "employees_loaded=%d | tolerance=%.3f | detection_model=%s",
-        data_dir,
-        data_dir / "employees.csv",
-        data_dir / "attendance.csv",
-        employee_count,
-        core.settings.recognition_tolerance,
-        core.settings.detection_model,
-    )
+    if core.settings.storage_backend == "csv":
+        data_dir = core.settings.data_dir.resolve()
+        logger.info(
+            "Backend started | storage=csv | data_dir=%s | employees_csv=%s | "
+            "attendance_csv=%s | employees_loaded=%d | tolerance=%.3f | detection_model=%s",
+            data_dir,
+            data_dir / "employees.csv",
+            data_dir / "attendance.csv",
+            employee_count,
+            core.settings.recognition_tolerance,
+            core.settings.detection_model,
+        )
+    else:
+        logger.info(
+            "Backend started | storage=supabase | employees_loaded=%d | "
+            "tolerance=%.3f | detection_model=%s",
+            employee_count,
+            core.settings.recognition_tolerance,
+            core.settings.detection_model,
+        )
 
     @application.middleware("http")
     async def log_http_request(request: Request, call_next) -> Response:

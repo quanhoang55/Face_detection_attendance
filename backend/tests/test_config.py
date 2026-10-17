@@ -37,6 +37,15 @@ class SettingsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "recognition_tolerance"):
             Settings(recognition_tolerance=1.1)
 
+    def test_supabase_backend_requires_credentials(self) -> None:
+        with self.assertRaisesRegex(ValueError, "SUPABASE_URL"):
+            Settings(storage_backend="supabase")
+
+    def test_csv_remains_default_without_supabase_environment(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            settings = Settings.from_env()
+        self.assertEqual(settings.storage_backend, "csv")
+
 
 if __name__ == "__main__":
     unittest.main()

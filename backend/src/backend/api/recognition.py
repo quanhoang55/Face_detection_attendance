@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, UploadFile
 
 from backend.api.dependencies import get_core
-from backend.api.errors import as_http_exception
+from backend.api.errors import as_http_exception, database_http_exception
 from backend.main import CoreServices
 from backend.models.schemas import RecognitionResponse
 
@@ -44,5 +44,8 @@ def recognize_faces(
             error,
         )
         raise as_http_exception(error) from error
+    except Exception as error:
+        logger.exception("Recognition storage failed")
+        raise database_http_exception(error) from error
     finally:
         image.file.close()

@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 
 from backend.api.dependencies import get_core
-from backend.api.errors import as_http_exception
+from backend.api.errors import as_http_exception, database_http_exception
 from backend.main import CoreServices
 from backend.models.schemas import EmployeeAttendance, EmployeeCreated
 
@@ -55,6 +55,9 @@ def create_employee(
             error,
         )
         raise as_http_exception(error) from error
+    except Exception as error:
+        logger.exception("Employee enrollment storage failed | name=%r", name)
+        raise database_http_exception(error) from error
     finally:
         image.file.close()
 
@@ -63,7 +66,11 @@ def create_employee(
 def list_employees(
     core: Annotated[CoreServices, Depends(get_core)],
 ) -> list[EmployeeAttendance]:
-    employees = core.employee_service.list_with_attendance()
+    try:
+        employees = core.employee_service.list_with_attendance()
+    except Exception as error:
+        logger.exception("Employee list storage failed")
+        raise database_http_exception(error) from error
     logger.info(
         "Employee list loaded | total=%d | arrived=%d",
         len(employees),
@@ -77,7 +84,11 @@ def list_attendance(
     core: Annotated[CoreServices, Depends(get_core)],
     attendance_date: Annotated[date | None, Query(alias="date")] = None,
 ) -> list[EmployeeAttendance]:
-    employees = core.employee_service.list_with_attendance(attendance_date)
+    try:
+        employees = core.employee_service.list_with_attendance(attendance_date)
+    except Exception as error:
+        logger.exception("Attendance list storage failed")
+        raise database_http_exception(error) from error
     logger.info(
         "Attendance list loaded | requested_date=%s | total=%d | arrived=%d",
         attendance_date or "today",

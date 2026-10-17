@@ -6,14 +6,14 @@ from datetime import date, datetime
 from typing import Callable
 
 from backend.models.domain import Attendance
-from backend.repositories.attendance_csv import AttendanceCsvRepository
+from backend.repositories.interfaces import AttendanceRepository
 
 Clock = Callable[[], datetime]
 
 
 class AttendanceService:
     def __init__(
-        self, attendance_repository: AttendanceCsvRepository, clock: Clock
+        self, attendance_repository: AttendanceRepository, clock: Clock
     ) -> None:
         self._attendance = attendance_repository
         self._clock = clock

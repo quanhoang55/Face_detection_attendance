@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from threading import RLock
@@ -58,6 +59,13 @@ class EmployeeCsvRepository:
                 raise DuplicateEmployeeError(
                     f"an employee named {employee.name!r} is already enrolled"
                 )
+            if not employee.employee_id:
+                highest = 0
+                for item in employees:
+                    prefix, separator, numeric_id = item.employee_id.partition("_")
+                    if prefix == "emp" and separator and numeric_id.isdigit():
+                        highest = max(highest, int(numeric_id))
+                employee = replace(employee, employee_id=f"emp_{highest + 1:03d}")
             employees.append(employee)
             atomic_write_rows(
                 self._path, FIELDS, (self._serialize(item) for item in employees)

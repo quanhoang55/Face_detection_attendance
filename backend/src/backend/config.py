@@ -13,6 +13,7 @@ from typing import Literal, cast
 
 DetectionModel = Literal["hog", "cnn"]
 EncodingModel = Literal["small", "large"]
+StorageBackend = Literal["csv", "supabase"]
 LOG_LEVELS = {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"}
 
 
@@ -30,6 +31,9 @@ class Settings:
     max_upload_bytes: int = 5 * 1024 * 1024
     timezone: str = "Asia/Ho_Chi_Minh"
     log_level: str = "INFO"
+    storage_backend: StorageBackend = "csv"
+    supabase_url: str | None = None
+    supabase_secret_key: str | None = None
     cors_origins: tuple[str, ...] = (
         "http://localhost:3000",
         "http://localhost:5173",
@@ -56,12 +60,24 @@ class Settings:
             raise ValueError(
                 "log_level must be CRITICAL, ERROR, WARNING, INFO, or DEBUG"
             )
+        if self.storage_backend not in {"csv", "supabase"}:
+            raise ValueError("storage_backend must be 'csv' or 'supabase'")
+        if self.storage_backend == "supabase":
+            if not self.supabase_url or not self.supabase_url.startswith("https://"):
+                raise ValueError("SUPABASE_URL must be an https URL when using Supabase")
+            if not self.supabase_secret_key:
+                raise ValueError(
+                    "SUPABASE_SECRET_KEY is required when STORAGE_BACKEND=supabase"
+                )
 
     @classmethod
     def from_env(cls) -> Settings:
         """Load settings from environment variables and validate them."""
 
         defaults = cls()
+        storage_backend = os.getenv("STORAGE_BACKEND", defaults.storage_backend).lower()
+        if storage_backend not in {"csv", "supabase"}:
+            raise ValueError("STORAGE_BACKEND must be 'csv' or 'supabase'")
         detection_model = os.getenv("FACE_DETECTION_MODEL", defaults.detection_model)
         encoding_model = os.getenv("FACE_ENCODING_MODEL", defaults.encoding_model)
 
@@ -91,6 +107,9 @@ class Settings:
             ),
             timezone=os.getenv("FACE_TIMEZONE", defaults.timezone),
             log_level=os.getenv("FACE_LOG_LEVEL", defaults.log_level).upper(),
+            storage_backend=cast(StorageBackend, storage_backend),
+            supabase_url=os.getenv("SUPABASE_URL") or None,
+            supabase_secret_key=os.getenv("SUPABASE_SECRET_KEY") or None,
             cors_origins=tuple(
                 origin.strip()
                 for origin in os.getenv(

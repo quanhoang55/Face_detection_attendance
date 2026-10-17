@@ -9,7 +9,7 @@ from backend.models.schemas import (
     RecognitionResponse,
     RecognizedFaceResponse,
 )
-from backend.repositories.employee_csv import EmployeeCsvRepository
+from backend.repositories.interfaces import EmployeeRepository
 from backend.services.attendance_service import AttendanceService
 from backend.services.face_recognizer import FaceRecognizer, KnownFace
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class RecognitionService:
     def __init__(
         self,
-        employee_repository: EmployeeCsvRepository,
+        employee_repository: EmployeeRepository,
         attendance_service: AttendanceService,
         face_recognizer: FaceRecognizer,
     ) -> None:
