@@ -27,6 +27,7 @@ class AttendanceService:
         return {
             item.employee_id: item
             for item in self._attendance.list_for_date(attendance_date)
+            if item.is_arrive
         }
 
     def mark_arrived(self, employee_id: str, distance: float) -> bool:
