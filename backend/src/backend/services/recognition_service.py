@@ -11,6 +11,7 @@ from backend.models.schemas import (
 )
 from backend.repositories.interfaces import EmployeeRepository
 from backend.services.attendance_service import AttendanceService
+from backend.services.face_liveness import FaceLivenessDetector
 from backend.services.face_recognizer import FaceRecognizer, KnownFace
 
 logger = logging.getLogger(__name__)
@@ -22,12 +23,15 @@ class RecognitionService:
         employee_repository: EmployeeRepository,
         attendance_service: AttendanceService,
         face_recognizer: FaceRecognizer,
+        face_liveness_detector: FaceLivenessDetector,
     ) -> None:
         self._employees = employee_repository
         self._attendance = attendance_service
         self._face_recognizer = face_recognizer
+        self._face_liveness_detector = face_liveness_detector
 
     def recognize_and_mark_arrival(self, image: bytes) -> RecognitionResponse:
+        self._face_liveness_detector.check(image)
         employees = self._employees.list_all()
         known_faces = [
             KnownFace(

@@ -39,6 +39,9 @@ function recognitionMessage(
   }
   if (state === 'unknown') return 'A face was found, but it did not match an employee.'
   if (state === 'no-face') return 'Camera is ready. Move a face into the frame.'
+  if (state === 'spoof-detected') {
+    return error ?? 'Photo or screen detected — use your live face. Attendance was not recorded.'
+  }
   if (state === 'backend-error') return error ?? 'The recognition server is unavailable.'
   return 'Recognition will start automatically when the camera is active.'
 }
@@ -86,7 +89,7 @@ export function CameraView({
       </div>
 
       <div
-        className="camera-frame"
+        className={`camera-frame${recognitionState === 'spoof-detected' ? ' spoof-detected' : ''}`}
         style={{ aspectRatio: `${frameSize.width} / ${frameSize.height}` }}
       >
         <video ref={videoRef} muted playsInline aria-label="Live attendance camera" />
@@ -126,6 +129,12 @@ export function CameraView({
                 </div>
               )
             })}
+          </div>
+        ) : null}
+        {cameraState === 'active' && recognitionState === 'spoof-detected' ? (
+          <div className="spoof-warning" role="alert">
+            <strong>Photo or phone screen detected</strong>
+            <span>Use your live face. Attendance was not recorded.</span>
           </div>
         ) : null}
       </div>

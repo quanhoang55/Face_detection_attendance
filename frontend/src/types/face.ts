@@ -43,4 +43,5 @@ export type RecognitionState =
   | 'recognized'
   | 'unknown'
   | 'no-face'
+  | 'spoof-detected'
   | 'backend-error'

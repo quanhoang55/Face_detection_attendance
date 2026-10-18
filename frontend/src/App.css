@@ -73,6 +73,10 @@
 .face-box.unknown { border-color: #f0b461; }
 .face-label { position: absolute; bottom: calc(100% + 6px); left: -2px; max-width: 180px; padding: 6px 9px; overflow: hidden; border-radius: 7px; color: #102319; background: #7be0a1; font-size: .7rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .face-box.unknown .face-label { color: #392512; background: #f0b461; }
+.camera-frame.spoof-detected { outline: 3px solid #dc2626; outline-offset: -3px; }
+.spoof-warning { position: absolute; right: 14px; bottom: 14px; left: 14px; display: flex; flex-direction: column; gap: 4px; padding: 12px 15px; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; color: #fff; background: rgba(185, 28, 28, .94); box-shadow: 0 5px 20px rgba(0,0,0,.25); }
+.spoof-warning strong { font-size: .85rem; }
+.spoof-warning span { font-size: .75rem; }
 .recognition-strip { min-height: 43px; display: flex; align-items: center; gap: 9px; margin-top: 12px; padding: 0 14px; border: 1px solid #e0e6df; border-radius: 11px; color: var(--muted); background: #f8faf7; font-size: .78rem; }
 .recognition-strip strong { color: #344139; }
 .employee-card { padding: 20px; border: 1px solid #dfe6df; border-radius: 18px; background: #f7f9f5; }

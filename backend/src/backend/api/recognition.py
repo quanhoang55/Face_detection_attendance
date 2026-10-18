@@ -3,12 +3,16 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from backend.api.dependencies import get_core
 from backend.api.errors import as_http_exception, database_http_exception
 from backend.main import CoreServices
 from backend.models.schemas import RecognitionResponse
+from backend.services.face_liveness import (
+    LivenessCheckUnavailableError,
+    SpoofDetectedError,
+)
 
 router = APIRouter(prefix="/api", tags=["recognition"])
 logger = logging.getLogger(__name__)
@@ -37,6 +41,12 @@ def recognize_faces(
             response.attendance_updated,
         )
         return response
+    except SpoofDetectedError as error:
+        logger.warning("Recognition rejected as spoof | filename=%r", image.filename)
+        raise HTTPException(status_code=403, detail=str(error)) from error
+    except LivenessCheckUnavailableError as error:
+        logger.exception("Recognition blocked because liveness check is unavailable")
+        raise HTTPException(status_code=503, detail=str(error)) from error
     except ValueError as error:
         logger.warning(
             "Recognition rejected | filename=%r | error=%s",

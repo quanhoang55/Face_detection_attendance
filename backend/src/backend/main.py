@@ -22,6 +22,7 @@ from backend.repositories.supabase_rest import SupabaseRestClient
 from backend.services.attendance_service import AttendanceService
 from backend.services.employee_service import EmployeeService
 from backend.services.face_encoder import FaceEncoder
+from backend.services.face_liveness import FaceLivenessDetector
 from backend.services.face_recognizer import FaceRecognizer
 from backend.services.recognition_service import RecognitionService
 from backend.services.upload_service import UploadService
@@ -34,6 +35,7 @@ class CoreServices:
     settings: Settings
     face_encoder: FaceEncoder
     face_recognizer: FaceRecognizer
+    face_liveness_detector: FaceLivenessDetector
     employee_repository: EmployeeRepository
     attendance_repository: AttendanceRepository
     upload_service: UploadService
@@ -53,6 +55,7 @@ def create_core(settings: Settings | None = None) -> CoreServices:
 
     face_encoder = FaceEncoder(resolved_settings)
     face_recognizer = FaceRecognizer(resolved_settings)
+    face_liveness_detector = FaceLivenessDetector(resolved_settings)
     if resolved_settings.storage_backend == "supabase":
         client = SupabaseRestClient(
             resolved_settings.supabase_url or "",
@@ -72,6 +75,7 @@ def create_core(settings: Settings | None = None) -> CoreServices:
         settings=resolved_settings,
         face_encoder=face_encoder,
         face_recognizer=face_recognizer,
+        face_liveness_detector=face_liveness_detector,
         employee_repository=employee_repository,
         attendance_repository=attendance_repository,
         upload_service=UploadService(resolved_settings),
@@ -86,6 +90,7 @@ def create_core(settings: Settings | None = None) -> CoreServices:
             employee_repository,
             attendance_service,
             face_recognizer,
+            face_liveness_detector,
         ),
     )
 
@@ -107,21 +112,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         data_dir = core.settings.data_dir.resolve()
         logger.info(
             "Backend started | storage=csv | data_dir=%s | employees_csv=%s | "
-            "attendance_csv=%s | employees_loaded=%d | tolerance=%.3f | detection_model=%s",
+            "attendance_csv=%s | employees_loaded=%d | tolerance=%.3f | "
+            "detection_model=%s | anti_spoofing=%s",
             data_dir,
             data_dir / "employees.csv",
             data_dir / "attendance.csv",
             employee_count,
             core.settings.recognition_tolerance,
             core.settings.detection_model,
+            core.settings.anti_spoofing_enabled,
         )
     else:
         logger.info(
             "Backend started | storage=supabase | employees_loaded=%d | "
-            "tolerance=%.3f | detection_model=%s",
+            "tolerance=%.3f | detection_model=%s | anti_spoofing=%s",
             employee_count,
             core.settings.recognition_tolerance,
             core.settings.detection_model,
+            core.settings.anti_spoofing_enabled,
         )
 
     @application.middleware("http")

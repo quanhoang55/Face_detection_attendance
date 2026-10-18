@@ -178,6 +178,13 @@ environment variables:
 | `FACE_RECOGNITION_TOLERANCE` | `0.55` | Maximum distance accepted as a match |
 | `FACE_RECOGNITION_FRAME_SCALE` | `0.5` | Scale applied before live recognition |
 | `FACE_DETECTION_MODEL` | `hog` | Face detector: `hog` or `cnn` |
+| `FACE_ANTI_SPOOFING_ENABLED` | `true` | Run DeepFace's anti-spoofing check before identity recognition |
+
+Live recognition checks each camera frame with DeepFace anti-spoofing before
+matching the existing employee encoding. A spoof is rejected with HTTP 403; if
+the anti-spoof model cannot load, recognition fails closed with HTTP 503. The
+first check downloads DeepFace's model weights, so the Render service needs
+outbound access and enough runtime memory for PyTorch and the model.
 
 ## Deploying the backend to Render
 

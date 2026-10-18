@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { recognizeFrame } from '../services/api'
+import { ApiError, recognizeFrame } from '../services/api'
 import type {
   CameraState,
   RecognitionState,
@@ -157,8 +157,19 @@ export function useCameraRecognition({
     } catch (requestError) {
       if (requestError instanceof DOMException && requestError.name === 'AbortError') return
       console.error('[recognition] Camera frame failed', requestError)
-      setRecognitionState('backend-error')
-      setError(requestError instanceof Error ? requestError.message : 'Recognition failed.')
+      const message = requestError instanceof Error ? requestError.message : 'Recognition failed.'
+      if (
+        requestError instanceof ApiError &&
+        requestError.status === 403 &&
+        /photo or screen replay/i.test(message)
+      ) {
+        setFaces([])
+        setRecognitionState('spoof-detected')
+        setError('Photo or screen detected — use your live face. Attendance was not recorded.')
+      } else {
+        setRecognitionState('backend-error')
+        setError(message)
+      }
     } finally {
       activeRequestRef.current = null
       busyRef.current = false

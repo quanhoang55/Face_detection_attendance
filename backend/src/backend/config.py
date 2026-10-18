@@ -34,6 +34,7 @@ class Settings:
     storage_backend: StorageBackend = "csv"
     supabase_url: str | None = None
     supabase_secret_key: str | None = None
+    anti_spoofing_enabled: bool = True
     cors_origins: tuple[str, ...] = (
         "http://localhost:3000",
         "http://localhost:5173",
@@ -110,6 +111,9 @@ class Settings:
             storage_backend=cast(StorageBackend, storage_backend),
             supabase_url=os.getenv("SUPABASE_URL") or None,
             supabase_secret_key=os.getenv("SUPABASE_SECRET_KEY") or None,
+            anti_spoofing_enabled=_env_bool(
+                "FACE_ANTI_SPOOFING_ENABLED", defaults.anti_spoofing_enabled
+            ),
             cors_origins=tuple(
                 origin.strip()
                 for origin in os.getenv(
@@ -138,3 +142,15 @@ def _env_int(name: str, default: int) -> int:
         return int(raw_value)
     except ValueError as error:
         raise ValueError(f"{name} must be an integer") from error
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    normalized = raw_value.strip().lower()
+    if normalized in {"true", "1", "yes", "on"}:
+        return True
+    if normalized in {"false", "0", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean (true/false)")
