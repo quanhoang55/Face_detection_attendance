@@ -186,6 +186,40 @@ the anti-spoof model cannot load, recognition fails closed with HTTP 503. The
 first check downloads DeepFace's model weights, so the Render service needs
 outbound access and enough runtime memory for PyTorch and the model.
 
+## Store data in Supabase
+
+The backend supports Supabase PostgreSQL. To set up a new Supabase project:
+
+1. Create a project in Supabase.
+2. In the project's **SQL Editor**, run [`backend/supabase/schema.sql`](backend/supabase/schema.sql).
+   This creates the `employees` and `attendance` tables, employee ID sequence,
+   uniqueness constraints, and service-role-only access.
+3. Set the following variables in the backend's PowerShell session, replacing
+   the placeholders with values from your Supabase project:
+
+   ```powershell
+   $env:STORAGE_BACKEND = "supabase"
+   $env:SUPABASE_URL = "https://<project-ref>.supabase.co"
+   $env:SUPABASE_SECRET_KEY = "<server-only-secret-key>"
+   ```
+
+4. Start the backend from `backend/` as usual. Keep `SUPABASE_SECRET_KEY` on
+   the backend only; never put it in frontend variables or commit it to Git.
+
+The app will write new enrollments and attendance to Supabase when started with
+`STORAGE_BACKEND=supabase`. To import existing CSV records, first run the
+migration script without `--apply` to validate them, then add `--apply` to
+import after reviewing the dry-run result:
+
+```powershell
+uv run python scripts/migrate_csv_to_supabase.py
+uv run python scripts/migrate_csv_to_supabase.py --apply
+```
+
+The apply command requires `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in the
+environment. See [`docs/supabase_implement_spec.md`](docs/supabase_implement_spec.md)
+for the complete setup and migration notes.
+
 ## Deploying the backend to Render
 
 Set the Render service's root directory to `backend`. Use this build command so

@@ -79,6 +79,14 @@
 .spoof-warning span { font-size: .75rem; }
 .recognition-strip { min-height: 43px; display: flex; align-items: center; gap: 9px; margin-top: 12px; padding: 0 14px; border: 1px solid #e0e6df; border-radius: 11px; color: var(--muted); background: #f8faf7; font-size: .78rem; }
 .recognition-strip strong { color: #344139; }
+.attendance-confirmations { display: grid; gap: 10px; margin-top: 16px; }
+.attendance-confirmation { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid #bbd7c1; border-radius: 14px; color: #23583a; background: #edf7ef; }
+.attendance-confirmation-check { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--green); }
+.attendance-confirmation-check svg { width: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.2; }
+.attendance-confirmation-copy { min-width: 0; display: flex; flex: 1; flex-direction: column; gap: 3px; }
+.attendance-confirmation-copy strong { overflow: hidden; color: #214c32; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+.attendance-confirmation-copy span { color: #567260; font-size: .77rem; }
+.attendance-confirmation-badge { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; color: #276a4b; background: #d9efdf; font-size: .7rem; font-weight: 700; }
 .employee-card { padding: 20px; border: 1px solid #dfe6df; border-radius: 18px; background: #f7f9f5; }
 .employee-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #dde5dd; }
 .employee-card-header h3 { margin: 0 0 4px; color: var(--ink); font: 700 .98rem/1.3 'Avenir Next', 'Segoe UI', sans-serif; }

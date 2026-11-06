@@ -5,6 +5,14 @@ import { useCameraRecognition } from '../hooks/useCameraRecognition'
 import { CameraView } from './CameraView'
 import { EmployeeList } from './EmployeeList'
 
+function formatAttendanceTime(value: string): string {
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(new Date(value))
+}
+
 export function AttendanceTab() {
   const [employees, setEmployees] = useState<EmployeeAttendance[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +47,14 @@ export function AttendanceTab() {
     recognitionEnabled: employees.length > 0,
     onAttendanceUpdated: refreshEmployees,
   })
+  const recognizedEmployees = new Map<string, string>()
+  for (const face of camera.faces) {
+    if (face.employee_id) recognizedEmployees.set(face.employee_id, face.name)
+  }
+  const showAttendanceResults =
+    camera.recognitionState !== 'backend-error' &&
+    camera.recognitionState !== 'spoof-detected' &&
+    recognizedEmployees.size > 0
 
   return (
     <section className="panel" aria-labelledby="attendance-title">
@@ -64,6 +80,36 @@ export function AttendanceTab() {
         />
         <EmployeeList employees={employees} loading={loading} error={listError} />
       </div>
+
+      {showAttendanceResults ? (
+        <div className="attendance-confirmations" aria-live="polite">
+          {[...recognizedEmployees].map(([employeeId, name]) => {
+            const employee = employees.find((item) => item.employee_id === employeeId)
+            const arrivedAt = employee?.is_arrive ? employee.arrived_at : null
+
+            return (
+              <div className="attendance-confirmation" key={employeeId}>
+                <span className="attendance-confirmation-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="m6.5 12.5 3.5 3.5 7.5-8" />
+                  </svg>
+                </span>
+                <div className="attendance-confirmation-copy">
+                  <strong>{name}</strong>
+                  <span>
+                    {arrivedAt
+                      ? `Checked in at ${formatAttendanceTime(arrivedAt)}`
+                      : 'Recording attendance time…'}
+                  </span>
+                </div>
+                <span className="attendance-confirmation-badge">
+                  {arrivedAt ? 'Checked in' : 'Saving'}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
     </section>
   )
 }
