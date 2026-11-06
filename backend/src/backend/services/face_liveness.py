@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 
 import cv2
 
@@ -41,6 +42,13 @@ class FaceLivenessDetector:
         bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
 
         try:
+            # DeepFace prints Unicode status symbols; Windows console encodings
+            # such as cp1252 cannot encode them and otherwise abort model setup.
+            stdout = sys.stdout
+            reconfigure_stdout = getattr(stdout, "reconfigure", None)
+            if sys.platform == "win32" and callable(reconfigure_stdout):
+                reconfigure_stdout(errors="backslashreplace")
+
             from deepface import DeepFace
 
             face_objects = DeepFace.extract_faces(

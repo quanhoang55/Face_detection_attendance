@@ -37,7 +37,10 @@ class Settings:
     anti_spoofing_enabled: bool = True
     cors_origins: tuple[str, ...] = (
         "http://localhost:3000",
+        "http://127.0.0.1:5173",
         "http://localhost:5173",
+        "http://127.0.0.1:5175",
+        "http://localhost:5175",
     )
 
     def __post_init__(self) -> None:
